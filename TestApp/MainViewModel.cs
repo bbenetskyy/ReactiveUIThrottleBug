@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Net.Http.Headers;
@@ -58,7 +58,8 @@ namespace TestApp
             Collection = new ObservableCollection<string>();
 
             var observable = this.WhenAnyValue(x => x.SearchText)
-                //.Throttle(TimeSpan.FromMilliseconds(500))
+                .Throttle(TimeSpan.FromMilliseconds(500))
+                .ObserveOn(RxApp.MainThreadScheduler)
                 .DistinctUntilChanged();
 
             observable.Where(IsNullOrEmpty)
@@ -87,16 +88,19 @@ namespace TestApp
                 IsSearching = false;
                 return Unit.Default;
             });
+            ClearCommand.ObserveOn(RxApp.MainThreadScheduler).Subscribe();
         }
 
         private async Task OnSearch(CancellationToken token)
         {
             for (int i = 1; i <= 40; i++)
             {
-                if (token.IsCancellationRequested) break;
+                if (token.IsCancellationRequested)
+                    break;
                 await Task.Delay(TimeSpan.FromMilliseconds(500));
 
-                if (token.IsCancellationRequested) break;
+                if (token.IsCancellationRequested)
+                    break;
                 Collection.AddRange(new List<string>
                 {
                     DateTime.Now.Millisecond.ToString(),DateTime.Now.Millisecond.ToString(),DateTime.Now.Millisecond.ToString(),
